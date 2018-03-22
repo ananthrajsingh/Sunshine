@@ -19,48 +19,127 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import com.example.android.sunshine.data.WeatherContract;
+import com.firebase.jobdispatcher.Constraint;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
+import com.firebase.jobdispatcher.Job;
+import com.firebase.jobdispatcher.Lifetime;
+import com.firebase.jobdispatcher.Trigger;
 
+import java.util.concurrent.TimeUnit;
 
 public class SunshineSyncUtils {
 
-//  TODO (1) Declare a private static boolean field called sInitialized
-    private static boolean sInitialized = false;
-    synchronized public static void initialize(final Context context) {
-       if(sInitialized) return;
+//  TODO (10) Add constant values to sync Sunshine every 3 - 4 hours
+    public static final int SYNC_INTERVAL_HOURS = 3;
+    public static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
+    public static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS;
+
+    private static boolean sInitialized;
+
+//  TODO (11) Add a sync tag to identify our sync job
+    public static final String SUNSHINE_SYNC_TAG = "weather-sync-job";
+
+//  TODO (12) Create a method to schedule our periodic weather sync
+    public static void scheduleFirebaseJobDispatcherSync(Context context){
+        GooglePlayDriver playDriver = new GooglePlayDriver(context);
+        FirebaseJobDispatcher sunshineJobDispatcher = new FirebaseJobDispatcher(playDriver);
+
+        Job sunshineSyncJob = sunshineJobDispatcher.newJobBuilder()
+                .setService(SunshineFirebaseJobService.class)
+                .setTag(SUNSHINE_SYNC_TAG)
+                .setConstraints(Constraint.ON_ANY_NETWORK)
+                .setLifetime(Lifetime.FOREVER)
+                .setRecurring(true)
+                .setTrigger(Trigger.executionWindow(
+                SYNC_INTERVAL_SECONDS,
+                SYNC_INTERVAL_SECONDS + SYNC_FLEXTIME_SECONDS))
+                .setReplaceCurrent(true)
+                /* Once the Job is ready, call the builder's build method to return the Job */
+                .build();
+
+        /* Schedule the Job with the dispatcher */
+        playDriver.schedule(sunshineSyncJob);
+    }
+
+    /**
+     * Creates periodic sync tasks and checks to see if an immediate sync is required. If an
+     * immediate sync is required, this method will take care of making sure that sync occurs.
+     *
+     * @param context Context that will be passed to other methods and used to access the
+     *                ContentResolver
+     */
+    synchronized public static void initialize(@NonNull final Context context) {
+
+        /*
+         * Only perform initialization once per app lifetime. If initialization has already been
+         * performed, we have nothing to do in this method.
+         */
+        if (sInitialized) return;
+
         sInitialized = true;
-        //  TODO (2) Create a synchronized public static void method called initialize
-        //  TODO (3) Only execute this method body if sInitialized is false
-        //  TODO (4) If the method body is executed, set sInitialized to true
-        //  TODO (5) Check to see if our weather ContentProvider is empty
-        new AsyncTask<Void, Void, Void>() {
 
+//      TODO (13) Call the method you created to schedule a periodic weather sync
+        scheduleFirebaseJobDispatcherSync(context);
+
+        /*
+         * We need to check to see if our ContentProvider has data to display in our forecast
+         * list. However, performing a query on the main thread is a bad idea as this may
+         * cause our UI to lag. Therefore, we create a thread in which we will run the query
+         * to check the contents of our ContentProvider.
+         */
+        Thread checkForEmpty = new Thread(new Runnable() {
             @Override
-            protected Void doInBackground(Void... params) {
+            public void run() {
 
-                Uri weatherQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
+                /* URI for every row of weather data in our weather table*/
+                Uri forecastQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
+
+                /*
+                 * Since this query is going to be used only as a check to see if we have any
+                 * data (rather than to display data), we just need to PROJECT the ID of each
+                 * row. In our queries where we display data, we need to PROJECT more columns
+                 * to determine what weather details need to be displayed.
+                 */
                 String[] projectionColumns = {WeatherContract.WeatherEntry._ID};
-                String selectionStatement = WeatherContract.WeatherEntry.getSqlSelectForTodayOnwards();
+                String selectionStatement = WeatherContract.WeatherEntry
+                        .getSqlSelectForTodayOnwards();
+
+                /* Here, we perform the query to check to see if we have any weather data */
                 Cursor cursor = context.getContentResolver().query(
-                        weatherQueryUri,
+                        forecastQueryUri,
                         projectionColumns,
                         selectionStatement,
                         null,
                         null);
-                if(cursor == null || cursor.getCount() == 0){
+                /*
+                 * A Cursor object can be null for various different reasons. A few are
+                 * listed below.
+                 *
+                 *   1) Invalid URI
+                 *   2) A certain ContentProvider's query method returns null
+                 *   3) A RemoteException was thrown.
+                 *
+                 * Bottom line, it is generally a good idea to check if a Cursor returned
+                 * from a ContentResolver is null.
+                 *
+                 * If the Cursor was null OR if it was empty, we need to sync immediately to
+                 * be able to display data to the user.
+                 */
+                if (null == cursor || cursor.getCount() == 0) {
                     startImmediateSync(context);
                 }
+
+                /* Make sure to close the Cursor to avoid memory leaks! */
                 cursor.close();
-                return null;
-
-
             }
-        }.execute();
-        //  TODO (6) If it is empty or we have a null Cursor, sync the weather now!
+        });
 
+        /* Finally, once the thread is prepared, fire it off to perform our checks. */
+        checkForEmpty.start();
     }
 
     /**
