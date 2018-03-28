@@ -14,28 +14,93 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical">
+<!-- TODO (2) Remove the old layout -->
+<!--  TODO (3) Use ConstraintLayout to create the new list item layout -->
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <!--This TextView holds the weather data for one particular day in the forecast-->
+    <!-- This TextView holds the weather data for one particular day in the forecast -->
+
+    <!-- This View serves as a visual divider between list items -->
+    <View
+        android:id="@+id/view"
+        android:layout_width="368dp"
+        android:layout_height="1dp"
+        android:background="#dadada"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintHorizontal_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="41dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:srcCompat="@drawable/art_clear"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
     <TextView
-        android:id="@+id/tv_weather_data"
-        style="@style/TextAppearance.AppCompat.Large"
+        android:id="@+id/textViewDay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        tools:text="Saturday, October 1 - Sunny - 78° / 63°"/>
-
-    <!--This View serves as a visual divider between list items-->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:text="TextView"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintLeft_toRightOf="@+id/imageView"
         android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:background="#dadada"/>
+        android:layout_marginStart="8dp" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/textViewWeather"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        app:layout_constraintLeft_toLeftOf="@+id/textViewDay"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDay"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp" />
 
+    <TextView
+        android:id="@+id/textViewTempMin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="7dp"
+        android:layout_marginTop="0dp"
+        android:text="09 C"
+        android:textAppearance="@android:style/TextAppearance.Material.Title"
+        app:layout_constraintRight_toLeftOf="@+id/textViewTempMax"
+        app:layout_constraintTop_toTopOf="@+id/textViewTempMax" />
+
+    <TextView
+        android:id="@+id/textViewTempMax"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+
+        android:text="28 C"
+        android:textAppearance="@android:style/TextAppearance.Material.Title"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="16dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintVertical_bias="0.47" />
+
+</android.support.constraint.ConstraintLayout>

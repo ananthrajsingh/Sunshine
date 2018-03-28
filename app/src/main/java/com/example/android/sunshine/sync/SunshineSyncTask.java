@@ -76,21 +76,31 @@ public class SunshineSyncTask {
                         WeatherContract.WeatherEntry.CONTENT_URI,
                         weatherValues);
 
-//              TODO (13) Check if notifications are enabled
+                /*
+                 * Finally, after we insert data into the ContentProvider, determine whether or not
+                 * we should notify the user that the weather has been refreshed.
+                 */
                 boolean notificationsEnabled = SunshinePreferences.areNotificationsEnabled(context);
 
-//              TODO (14) Check if a day has passed since the last notification
-
-                long timeElapsedSinceLastNotification = SunshinePreferences.getEllapsedTimeSinceLastNotification(context);
+                /*
+                 * If the last notification was shown was more than 1 day ago, we want to send
+                 * another notification to the user that the weather has been updated. Remember,
+                 * it's important that you shouldn't spam your users with notifications.
+                 */
+                long timeSinceLastNotification = SunshinePreferences
+                        .getEllapsedTimeSinceLastNotification(context);
 
                 boolean oneDayPassedSinceLastNotification = false;
-//              TODO (15) If more than a day have passed and notifications are enabled, notify the user
 
-                if (timeElapsedSinceLastNotification >= DateUtils.DAY_IN_MILLIS){
+                if (timeSinceLastNotification >= DateUtils.DAY_IN_MILLIS) {
                     oneDayPassedSinceLastNotification = true;
                 }
 
-                if (oneDayPassedSinceLastNotification && notificationsEnabled){
+                /*
+                 * We only want to show the notification if the user wants them shown and we
+                 * haven't shown a notification in the past day.
+                 */
+                if (notificationsEnabled && oneDayPassedSinceLastNotification) {
                     NotificationUtils.notifyUserOfNewWeather(context);
                 }
 
