@@ -5,8 +5,6 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        vectorDrawables.useSupportLibrary = true
-
         applicationId "com.example.android.sunshine"
         minSdkVersion 10
         targetSdkVersion 25
@@ -19,8 +17,9 @@ android {
             minifyEnabled false
         }
     }
-    productFlavors {
-    }
+
+//  TODO (1) Enable databinding
+    dataBinding.enabled =true
 }
 
 dependencies {
