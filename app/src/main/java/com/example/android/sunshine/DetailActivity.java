@@ -28,7 +28,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 import com.example.android.sunshine.data.WeatherContract;
 import com.example.android.sunshine.databinding.ActivityDetailBinding;
@@ -268,7 +267,7 @@ public class DetailActivity extends AppCompatActivity implements
 
         int weatherImageId = SunshineWeatherUtils.getLargeArtResourceIdForWeatherCondition(weatherId);
 
-        ActivityDetailBinding.primaryInfo.weatherIcon.setImageResource(weatherImageId);
+        mDetailBinding.primaryInfo.weatherIcon.setImageResource(weatherImageId);
 
 
         /****************
@@ -298,6 +297,7 @@ public class DetailActivity extends AppCompatActivity implements
         String description = SunshineWeatherUtils.getStringForWeatherCondition(this, weatherId);
 
 //      TODO (15) Create the content description for the description for a11y
+        String descriptionA11y = getString(R.string.a11y_forecast, description);
 
 //      TODO (9) Use mDetailBinding to display the description and set the content description
         /* Set the text to display the description*/
@@ -305,6 +305,8 @@ public class DetailActivity extends AppCompatActivity implements
         mDetailBinding.primaryInfo.weatherDescription.setContentDescription(descriptionA11y);
 
 //      TODO (16) Set the content description of the icon to the same as the weather description a11y text
+        mDetailBinding.primaryInfo.weatherIcon.setContentDescription(descriptionA11y);
+
 
         /**************************
          * High (max) temperature *
@@ -339,10 +341,11 @@ public class DetailActivity extends AppCompatActivity implements
          * String.
          */
         String lowString = SunshineWeatherUtils.formatTemperature(this, lowInCelsius);
-        String lowA11y = getString(R.string.a11y_low_temp, lowString);
 
 
 //      TODO (18) Create the content description for the low temperature for a11y
+        String lowA11y = getString(R.string.a11y_low_temp, lowString);
+
 
 //      TODO (11) Use mDetailBinding to display the low temperature and set the content description
         /* Set the text to display the low temperature */
@@ -410,6 +413,8 @@ public class DetailActivity extends AppCompatActivity implements
         mDetailBinding.extraDetails.pressure.setContentDescription(pressureA11y);
 
 //      TODO (24) Set the content description of the pressure label to the pressure a11y String
+        mDetailBinding.extraDetails.pressureLabel.setContentDescription(pressureA11y);
+
 
         /* Store the forecast summary String in our forecast summary field to share later */
         mForecastSummary = String.format("%s - %s - %s/%s",
